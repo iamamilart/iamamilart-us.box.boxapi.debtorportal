@@ -1,0 +1,6 @@
+@US.BOX.DebtorPortalAPI_HostAddress = http://localhost:5125
+
+GET {{US.BOX.DebtorPortalAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

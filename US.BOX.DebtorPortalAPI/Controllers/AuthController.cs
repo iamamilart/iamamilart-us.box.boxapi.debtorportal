@@ -32,8 +32,10 @@ namespace US.BOX.DebtorPortalAPI.Controllers
                 var password = Request.Form["password"];
                 var company = Request.Form["company"];
 
-                ArgumentNullException.ThrowIfNull(password);
-                ArgumentNullException.ThrowIfNull(password);
+
+            if (username == "")
+                return null; 
+             
 
                 var response = await _authService.Authenticate(username , password  , company , cancellationToken);
 

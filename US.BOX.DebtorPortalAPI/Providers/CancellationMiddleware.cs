@@ -15,16 +15,24 @@
         {
             try
             {
+                if (context == null)
+                {
+                    return;
+                }
+                else {
+                    var xx = "sad";
+                }
+
                 context.RequestAborted.Register(() =>
                 {
-                   // _logger.LogInformation("Request was cancelled by the client for path: {Path}", context.Request.Path);
+                    _logger.LogInformation("Request was cancelled by the client for path: {Path}", context.Request.Path);
                 });
 
                 await _next(context);
             }
             catch (OperationCanceledException)
             {
-                //  _logger.LogInformation("Operation cancelled for request path: {Path}", context.Request.Path);
+                 _logger.LogInformation("Operation cancelled for request path: {Path}", context.Request.Path);
                 throw;
             }
         }

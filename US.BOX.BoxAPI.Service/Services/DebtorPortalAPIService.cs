@@ -15,34 +15,56 @@ namespace US.BOX.BoxAPI.Core.Services
            return await dataManager.GetDebtorPortalSettings(caseNumber, cancellationToken);
         }
 
-        public  async Task<PortalCase> GetPortalCase(int caseNumber, CancellationToken cancellationToken = default)
+        public async Task<PortalCase> GetPortalCase(int caseNumber, CancellationToken cancellationToken = default)
         {
-            var portalcase = await dataManager.GetPortalCase(caseNumber, cancellationToken);
-            var settings = await GetDebtorPortalSettings(0,cancellationToken);
-            if (portalcase.IsPartPayment)
+            var portalCase = await dataManager.GetPortalCase(caseNumber, cancellationToken);
+            var settings = await GetDebtorPortalSettings(0, cancellationToken);
+
+            if (portalCase.IsPartPayment)
             {
-                var payments = await dataManager.GetPartPayment(portalcase.BOXCaseNumber, cancellationToken);
-                var dueAmount = payments.Where(P => P.Date < DateTime.Now).Sum(X => X.CapitalAmount);
-                portalcase.DueBalance = portalcase.Balance; //installment payment is not avaiable yet
-                portalcase.PartPayments = payments;
-                var nextDueInstallment = payments.FirstOrDefault(p => p.Paid == false);
-                portalcase.NextDueAmount = (nextDueInstallment != null) ? nextDueInstallment.InstallmentAmount : 0;
+                await ProcessPartPaymentAsync(portalCase, cancellationToken);
             }
             else
             {
-                portalcase.PartPayments = new List<PartPayment>();
-                portalcase.DueBalance = portalcase.Balance;
-                portalcase.IsPartPaymentBreach = false;
+                InitializeNonPartPaymentCase(portalCase);
             }
 
-            portalcase.DebEmail = string.IsNullOrEmpty(portalcase.DebEmail) ? "" : AuthCommon.ProtectData(portalcase.DebEmail);
-            portalcase.DebMobile = string.IsNullOrEmpty(portalcase.DebMobile) ? "" : AuthCommon.ProtectData(portalcase.DebMobile);
-            portalcase.Signature = Common.GetDebtorSignature(portalcase.DueBalance, settings["SignatureKey"]);
-            portalcase.PartPaymentSignature = Common.GetDebtorSignature(portalcase.NextDueAmount, settings["SignatureKey"]);
-            portalcase.MinInstallmentAmount = Convert.ToDouble(settings["MinInstallmentAmount"]);
+            SecureDebtorInfo(portalCase);
+            ApplySignatures(portalCase, settings);
+            portalCase.MinInstallmentAmount = Convert.ToDouble(settings["MinInstallmentAmount"]);
 
-            return portalcase;
+            return portalCase;
         }
+
+        private async Task ProcessPartPaymentAsync(PortalCase portalCase, CancellationToken cancellationToken)
+        {
+            var payments = await dataManager.GetPartPayment(portalCase.BOXCaseNumber, cancellationToken);
+            portalCase.PartPayments = payments;
+            portalCase.DueBalance = portalCase.Balance; // Installment payment is not available yet
+
+            var nextDueInstallment = payments.FirstOrDefault(p => !p.Paid);
+            portalCase.NextDueAmount = nextDueInstallment?.InstallmentAmount ?? 0;
+        }
+
+        private void InitializeNonPartPaymentCase(PortalCase portalCase)
+        {
+            portalCase.PartPayments = new List<PartPayment>();
+            portalCase.DueBalance = portalCase.Balance;
+            portalCase.IsPartPaymentBreach = false;
+        }
+
+        private void SecureDebtorInfo(PortalCase portalCase)
+        {
+            portalCase.DebEmail = string.IsNullOrEmpty(portalCase.DebEmail) ? "" : AuthCommon.ProtectData(portalCase.DebEmail);
+            portalCase.DebMobile = string.IsNullOrEmpty(portalCase.DebMobile) ? "" : AuthCommon.ProtectData(portalCase.DebMobile);
+        }
+
+        private void ApplySignatures(PortalCase portalCase, IDictionary<string, string> settings)
+        {
+            portalCase.Signature = Common.GetDebtorSignature(portalCase.DueBalance, settings["SignatureKey"]);
+            portalCase.PartPaymentSignature = Common.GetDebtorSignature(portalCase.NextDueAmount, settings["SignatureKey"]);
+        }
+
 
         public async Task<List<Timeline>> GetTimelinedata(int caseNumber, CancellationToken cancellationToken = default)
         {

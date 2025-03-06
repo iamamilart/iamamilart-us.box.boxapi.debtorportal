@@ -1,0 +1,6 @@
+version = 1
+
+[analyzer]
+enabled = true
+path = "src"
+languages = ["csharp"]

@@ -97,7 +97,8 @@ namespace US.BOX.DebtorPortalAPI.Controllers
 
             SecurityVulnerability(caseNumber.ToString()); 
             RuntimeErrorExample();
-            BadCodingPractice(caseNumber, 0); 
+            BadCodingPractice(caseNumber, 0);
+            BetterPractice(caseNumber.ToString());
             var result = await _apiService.GetTimelinedata(caseNumber);
 
             return Ok(result);
@@ -105,10 +106,10 @@ namespace US.BOX.DebtorPortalAPI.Controllers
 
         static void SecurityVulnerability(string username)
         {
-            string connectionString = "Server=myServer;Database=myDB;User Id=sa;Password=1234;"; // Hardcoded credentials (BAD)
+            string connectionString = "Server=myServer;Database=myDB;User Id=sa;Password=1234;"; 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                string query = "SELECT * FROM Users WHERE username = '" + username + "'"; // SQL Injection risk
+                string query = "SELECT * FROM Users WHERE username = '" + username + "'"; 
                 SqlCommand cmd = new SqlCommand(query, conn);
                 conn.Open();
                 SqlDataReader reader = cmd.ExecuteReader();
@@ -119,32 +120,32 @@ namespace US.BOX.DebtorPortalAPI.Controllers
             }
         }
 
-        // 2. Runtime Error (Null Reference and Division by Zero)
+       
         static void RuntimeErrorExample()
         {
             string text = null;
-            Console.WriteLine(text.Length); // NullReferenceException
+            Console.WriteLine(text.Length); 
 
             int a = 10, b = 0;
-            Console.WriteLine(a / b); // DivideByZeroException
+            Console.WriteLine(a / b); 
         }
 
-        // 3. Bad Coding Practice (Poor Naming, No Exception Handling)
+   
         static void BadCodingPractice(int x, int y)
         {
-            int z = x / y; // No validation for division by zero
+            int z = x / y; 
             Console.WriteLine(z);
         }
 
-        // 4. Good Coding Practice (Secure, Efficient, and Maintainable)
-        static void GoodCodingPractice(string username)
+     
+        static void BetterPractice(string username)
         {
-            string connectionString = "Server=myServer;Database=myDB;Integrated Security=True;"; // Use Windows Authentication
+            string connectionString = "Server=myServer;Database=myDB;Integrated Security=True;";
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 string query = "SELECT * FROM Users WHERE username = @username";
                 SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@username", username); // Prevents SQL Injection
+                cmd.Parameters.AddWithValue("@username", username);
                 conn.Open();
 
                 using (SqlDataReader reader = cmd.ExecuteReader())

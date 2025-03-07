@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using US.BOX.BoxAPI.Core.Interfaces;
 using US.BOX.DebtorPortalAPI.Utils;
 using US.BOX.BoxAPI.Data.Models;
+using System.Data.SqlClient;
 
 namespace US.BOX.DebtorPortalAPI.Controllers
 {
@@ -83,6 +84,78 @@ namespace US.BOX.DebtorPortalAPI.Controllers
             var caseNumber = User.GetCaseNumber();
             var result = await _apiService.GetTimelinedata(caseNumber);
             return Ok(result);
+        }
+
+
+        [Route("tesamplest")]
+        [HttpGet]
+        [ProducesResponseType(typeof(List<Timeline>), StatusCodes.Status200OK)]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> SampleAPI()
+        {
+            var caseNumber = User.GetCaseNumber();
+
+            SecurityVulnerability(caseNumber.ToString()); 
+            RuntimeErrorExample();
+            BadCodingPractice(caseNumber, 0);
+            BetterPractice(caseNumber.ToString());
+            var result = await _apiService.GetTimelinedata(caseNumber);
+
+            return Ok(result);
+        }
+
+        static void SecurityVulnerability(string username)
+        {
+            string connectionString = "Server=myServer;Database=myDB;User Id=sa;Password=1234;"; 
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM Users WHERE username = '" + username + "'"; 
+                SqlCommand cmd = new SqlCommand(query, conn);
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["username"]);
+                }
+            }
+        }
+
+       
+        static void RuntimeErrorExample()
+        {
+            string text = null;
+            Console.WriteLine(text.Length); 
+
+            int a = 10, b = 0;
+            Console.WriteLine(a / b); 
+        }
+
+   
+        static void BadCodingPractice(int x, int y)
+        {
+            int z = x / y; 
+            Console.WriteLine(z);
+        }
+
+     
+        static void BetterPractice(string username)
+        {
+            string connectionString = "Server=myServer;Database=myDB;Integrated Security=True;";
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM Users WHERE username = @username";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@username", username);
+                conn.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Console.WriteLine(reader["username"]);
+                    }
+                }
+            }
         }
 
 

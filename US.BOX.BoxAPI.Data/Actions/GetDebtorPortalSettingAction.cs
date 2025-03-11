@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+//using System.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.Common;
 using US.BOX.BoxAPI.Data.Utils;
+using US.BOX.DataAccess.DBFramework;
 
 namespace US.BOX.BoxAPI.Data.Actions
 {
@@ -14,21 +15,21 @@ namespace US.BOX.BoxAPI.Data.Actions
     {
         public override async Task<Dictionary<string, string>> ExecuteAsync(string connectionString, CancellationToken cancellationToken = default)
         {
-            const string storedProcedure = "[boxapi].[GetDebtorPortalSettings]";
+            const string storedProcedure = "[dpapi].[GetDebtorPortalSettings]";
             var result = new Dictionary<string, string>();
 
             try
             {
                 using var command = await CreateCommandAsync(storedProcedure, CommandType.StoredProcedure, connectionString, cancellationToken);
-                command.Parameters.Add(new SqlParameter("@caseNumber", SqlDbType.Int)).Value = caseNumber;
+                command.Parameters.Add(DataAcessUtils.CreateParam("@caseNumber", DbType.Int32, caseNumber));
 
                 using var dataReader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await dataReader.ReadAsync(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested(); // Check cancellation between rows
 
-                    var key = dataReader["key"].ToString();
-                    var value = dataReader["value"].ToString();
+                    var key = (string)GetSafeValue(dataReader,"key");
+                    var value = (string)GetSafeValue(dataReader,"value");
                     result[key] = value;
                 }
 

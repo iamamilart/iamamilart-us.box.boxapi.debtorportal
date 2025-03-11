@@ -1,10 +1,9 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using US.BOX.BoxAPI.Core.Interfaces;
 using US.BOX.DebtorPortalAPI.Utils;
 using US.BOX.BoxAPI.Data.Models;
-using System.Data.SqlClient;
 
 namespace US.BOX.DebtorPortalAPI.Controllers
 {
@@ -50,13 +49,21 @@ namespace US.BOX.DebtorPortalAPI.Controllers
         [Route("cases")]
         [HttpGet]
         [ProducesResponseType(typeof(PortalCase), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Cases(CancellationToken cancellationToken)
         {
-            var caseNumber = User.GetCaseNumber();
-            var result = await _apiService.GetPortalCase(caseNumber, cancellationToken);
-            return Ok(result);
+            try
+            {
+                var caseNumber = User.GetCaseNumber();
+                var result = await _apiService.GetPortalCase(caseNumber, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting case details for user");
+                return StatusCode(500);
+            }
         }
-
 
         /// <summary>
         /// Fetch the debtor timeline data
@@ -78,88 +85,21 @@ namespace US.BOX.DebtorPortalAPI.Controllers
         [Route("timeline")]
         [HttpGet]
         [ProducesResponseType(typeof(List<Timeline>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> GetTimeline()
         {
-            var caseNumber = User.GetCaseNumber();
-            var result = await _apiService.GetTimelinedata(caseNumber);
-            return Ok(result);
-        }
-
-
-        [Route("tesamplest")]
-        [HttpGet]
-        [ProducesResponseType(typeof(List<Timeline>), StatusCodes.Status200OK)]
-        [MapToApiVersion("1.0")]
-        public async Task<IActionResult> SampleAPI()
-        {
-            var caseNumber = User.GetCaseNumber();
-
-            SecurityVulnerability(caseNumber.ToString()); 
-            RuntimeErrorExample();
-            BadCodingPractice(caseNumber, 0);
-            BetterPractice(caseNumber.ToString());
-            var result = await _apiService.GetTimelinedata(caseNumber);
-
-            return Ok(result);
-        }
-
-        static void SecurityVulnerability(string username)
-        {
-            string connectionString = "Server=myServer;Database=myDB;User Id=sa;Password=1234;"; 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                string query = "SELECT * FROM Users WHERE username = '" + username + "'"; 
-                SqlCommand cmd = new SqlCommand(query, conn);
-                conn.Open();
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    Console.WriteLine(reader["username"]);
-                }
+                var caseNumber = User.GetCaseNumber();
+                var result = await _apiService.GetTimelinedata(caseNumber);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting timeline data for user");
+                return StatusCode(500);
             }
         }
-
-       
-        static void RuntimeErrorExample()
-        {
-            string text = null;
-            Console.WriteLine(text.Length); 
-
-            int a = 10, b = 0;
-            Console.WriteLine(a / b); 
-        }
-
-   
-        static void BadCodingPractice(int x, int y)
-        {
-            int z = x / y; 
-            Console.WriteLine(z);
-        }
-
-     
-        static void BetterPractice(string username)
-        {
-            string connectionString = "Server=myServer;Database=myDB;Integrated Security=True;";
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                string query = "SELECT * FROM Users WHERE username = @username";
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@username", username);
-                conn.Open();
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        Console.WriteLine(reader["username"]);
-                    }
-                }
-            }
-        }
-
-
-
-
     }
 }

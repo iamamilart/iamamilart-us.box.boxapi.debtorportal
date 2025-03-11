@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+//using System.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using US.BOX.BoxAPI.Data.Models;
 using US.BOX.BoxAPI.Data.Utils;
+using US.BOX.DataAccess.DBFramework;
 
 namespace US.BOX.BoxAPI.Data.Actions
 {
@@ -15,12 +16,12 @@ namespace US.BOX.BoxAPI.Data.Actions
         public override async Task<List<PartPayment>> ExecuteAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             List<PartPayment> list = new List<PartPayment>();
-            string storedProcedure = "dbo.USP_GetExistingCasePartPayment";
-            //TODO - Need to create boxapi SP
+            string storedProcedure = "dpapi.USP_GetExistingCasePartPayment";
             try
             {
                 using var command = await CreateCommandAsync(storedProcedure, CommandType.StoredProcedure, connectionString,cancellationToken);
-                command.Parameters.Add(new SqlParameter("@caseNumber", SqlDbType.Int)).Value = caseNumber;
+                //command.Parameters.Add(new SqlParameter("@caseNumber", SqlDbType.Int)).Value = caseNumber;
+                command.Parameters.Add(DataAcessUtils.CreateParam("@caseNumber", DbType.Int32, caseNumber));
 
                 using var dataReader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await dataReader.ReadAsync(cancellationToken))
@@ -28,9 +29,9 @@ namespace US.BOX.BoxAPI.Data.Actions
                     cancellationToken.ThrowIfCancellationRequested(); // Check cancellation between rows
 
                     PartPayment partPaymentSchema = new PartPayment();
-                    partPaymentSchema.CapitalAmount = Convert.ToInt32(dataReader["Amount"]);
-                    partPaymentSchema.Date = Convert.ToDateTime(dataReader["DueDate"]);
-                    partPaymentSchema.CapitalAmount = Convert.ToDecimal(dataReader["Amount"]);
+                    partPaymentSchema.CapitalAmount = (Int32)GetSafeValue(dataReader,"Amount");
+                    partPaymentSchema.Date = (DateTime)GetSafeValue(dataReader,"DueDate");
+                    partPaymentSchema.CapitalAmount = (Decimal)GetSafeValue(dataReader,"Amount");
                     partPaymentSchema.InstallmentFee = Convert.ToDecimal(dataReader["InstalmentFee"]);
                     partPaymentSchema.InstallmentAmount = Convert.ToDecimal(dataReader["InstalmentAmount"]);
                     partPaymentSchema.Outstanding = Convert.ToDecimal(dataReader["Balance"]);

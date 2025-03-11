@@ -6,17 +6,18 @@ using System.Text;
 using System.Text.RegularExpressions;
 using US.BOX.BoxAPI.Auth.Model;
 using US.BOX.BoxAPI.Data;
+using US.BOX.BoxAPI.Data.Models;
 
 namespace US.BOX.DebtorPortalAPI.Utils
 {
     public partial class AuthService : IAuthService
     {
-        private readonly AuthSettings _authSettings;
+        //private readonly AuthSettings _authSettings;
         private readonly IDataManager _dataManager;
 
-        public AuthService(IOptions<AuthSettings> authSettings , IDataManager dataManager )
+        public AuthService( IDataManager dataManager )
         {
-            _authSettings = authSettings.Value;
+           // _authSettings = authSettings.Value;
             _dataManager = dataManager;
         }
 
@@ -24,6 +25,8 @@ namespace US.BOX.DebtorPortalAPI.Utils
         {
             int status = 0;
             AuthenticateResponse response = new AuthenticateResponse();
+            //DPAPIConfig.TenentID = "854C5085-256D-4B7E-BACD-708A465CB7B4";
+            await _dataManager.GetTenantDBCommonConnection(DPAPIConfig.TenentID, cancellationToken);
 
             if (NumericOnlyRegex().IsMatch(username))
             {
@@ -56,7 +59,7 @@ namespace US.BOX.DebtorPortalAPI.Utils
 
             // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_authSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(DPAPIConfig.AuthSecret);
             var tokenExpiry = DateTime.UtcNow.AddDays(1);
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -68,8 +71,8 @@ namespace US.BOX.DebtorPortalAPI.Utils
                     new Claim("CompanyCode", company),         // Add CompanyCode claim
                     new Claim(ClaimTypes.Role, response.roles),         // Add username claim
 
-                    new Claim(JwtRegisteredClaimNames.Aud, _authSettings.ValidAudience), // Set the audience claim
-                    new Claim(JwtRegisteredClaimNames.Iss, _authSettings.ValidIssuer) // Set the audience claim
+                    new Claim(JwtRegisteredClaimNames.Aud, DPAPIConfig.AuthValidAudience), // Set the audience claim
+                    new Claim(JwtRegisteredClaimNames.Iss, DPAPIConfig.AuthValidIssuer) // Set the audience claim
 
                 }),
                 Expires = tokenExpiry,

@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "US.BOX.DebtorPortalAPI", "US.BOX.DebtorPortalAPI\US.BOX.DebtorPortalAPI.csproj", "{EDD40ED2-E15B-4AA5-8431-1CAAED3C70A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "US.BOX.DebtorPortalAPI", "US.BOX.DebtorPortalAPI\US.BOX.DebtorPortalAPI.csproj", "{EDD40ED2-E15B-4AA5-8431-1CAAED3C70A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "US.BOX.BoxAPI.Auth", "US.BOX.BoxAPI.Auth\US.BOX.BoxAPI.Auth.csproj", "{E0E21A57-0CCA-4F25-9C0A-FCB2D42BC703}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "US.BOX.BoxAPI.Auth", "US.BOX.BoxAPI.Auth\US.BOX.BoxAPI.Auth.csproj", "{E0E21A57-0CCA-4F25-9C0A-FCB2D42BC703}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "US.BOX.BoxAPI.Core", "US.BOX.BoxAPI.Service\US.BOX.BoxAPI.Core.csproj", "{AA79339B-C528-4146-9930-D598A2D8F4F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "US.BOX.BoxAPI.Service", "US.BOX.BoxAPI.Service\US.BOX.BoxAPI.Service.csproj", "{AA79339B-C528-4146-9930-D598A2D8F4F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "US.BOX.BoxAPI.Data", "US.BOX.BoxAPI.Data\US.BOX.BoxAPI.Data.csproj", "{ED1BF0BA-8F22-4CF5-8E64-63EA8B03FEAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "US.BOX.BoxAPI.Data", "US.BOX.BoxAPI.Data\US.BOX.BoxAPI.Data.csproj", "{ED1BF0BA-8F22-4CF5-8E64-63EA8B03FEAD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "US.BOX.DebtorPortalAPI.Tests", "US.BOX.DebtorPortalAPI.Tests\US.BOX.DebtorPortalAPI.Tests.csproj", "{1043F2DB-996D-4F74-BA12-53A95A09E0EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{ED1BF0BA-8F22-4CF5-8E64-63EA8B03FEAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED1BF0BA-8F22-4CF5-8E64-63EA8B03FEAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED1BF0BA-8F22-4CF5-8E64-63EA8B03FEAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1043F2DB-996D-4F74-BA12-53A95A09E0EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1043F2DB-996D-4F74-BA12-53A95A09E0EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1043F2DB-996D-4F74-BA12-53A95A09E0EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1043F2DB-996D-4F74-BA12-53A95A09E0EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,11 +10,52 @@ using US.BOX.DebtorPortalAPI.Swagger;
 using US.BOX.DebtorPortalAPI.Utils;
 using Serilog;
 using US.BOX.DebtorPortalAPI.Providers;
-
+using US.BOX.BoxAPI.Data.Models;
+using DinkToPdf.Contracts;
+using DinkToPdf;
+using Azure.Identity;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
+IConfiguration _configuration;
+var configBuilder = new ConfigurationBuilder().AddEnvironmentVariables();
+string env = Environment.GetEnvironmentVariable("Env");
+string service = Environment.GetEnvironmentVariable("Service");
+string endpoint = Environment.GetEnvironmentVariable("AppConfigEndpoint");
+string clientId = Environment.GetEnvironmentVariable("ClientId");
 
-// Set up Serilog configuration to read from appsettings.json
+configBuilder.AddAzureAppConfiguration(options =>
+{
+    options.Connect(new Uri(endpoint), new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = clientId }))
+            .Select("Common*", LabelFilter.Null)
+            .Select("Common*", env)
+            .Select(service + "*", LabelFilter.Null)
+            .Select(service + "*", env)
+            .UseFeatureFlags();
+});
+builder.Services.AddFeatureManagement();
+
+_configuration = configBuilder.Build();
+DPAPIConfig.ClientID = clientId;
+DPAPIConfig.CatalogDBConnectionString = _configuration["Common:WorkstationDbConnection"];
+DPAPIConfig.AuthSecret = _configuration["DPAPI:AuthSettings:Secret"];
+DPAPIConfig.AllowedHosts = _configuration["DPAPI:AuthSettings:AllowedHosts"];
+DPAPIConfig.AuthValidAudience = _configuration["DPAPI:AuthSettings:ValidAudience"];
+DPAPIConfig.AuthValidIssuer = _configuration["DPAPI:AuthSettings:ValidIssuer"];
+DPAPIConfig.AzureBlobStorageContainerName = _configuration["DPAPI:AzureBlobStorageContainerName"];
+DPAPIConfig.AzureBlobStorageAccountName = _configuration["DPAPI:AzureBlobStoragName"];
+//DPAPIConfig.ActivityExecutionAPIURL = _configuration["DPAPI:ActivityExecutionAPIURL"];
+//DPAPIConfig.ActivityExecutionAPIUser = _configuration["DPAPI:ActivityExecutionAPIUser"];
+//DPAPIConfig.ActivityExecutionAPIUSerCode = _configuration["DPAPI:ActivityExecutionAPIUSerCode"];
+DPAPIConfig.GenerateGDPRActivityCode = _configuration["DPAPI:GenerateGDPRActivityCode"];
+DPAPIConfig.InvoiceActivityCode = _configuration["DPAPI:InvoiceActivityCode"];
+DPAPIConfig.CPReciptTemplate = _configuration["DPAPI:CPReciptTemplate"];
+DPAPIConfig.EncryptionKey = _configuration["DPAPI:ActivityExecutionAPIEncriptionKey"];
+DPAPIConfig.ReciptFolderpath = _configuration["DPAPI:ReciptFolderpath"];
+DPAPIConfig.TenentID = _configuration["DPAPI:TenentID"];
+
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)  // This will read the sinks from appsettings.json
     .Enrich.FromLogContext()
@@ -32,7 +73,6 @@ builder.Services.AddCors(options =>
                .AllowAnyMethod();
     });
 });
-
 
 // Add services to the container.
 builder.Services.AddApiVersioning(options =>
@@ -87,33 +127,32 @@ builder.Services.AddSwaggerGen(c =>
                     }
                 });
 });
-builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
+
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var authSettings = builder.Configuration.GetSection("AuthSettings").Get<AuthSettings>();
-        var key = Encoding.ASCII.GetBytes(authSettings.Secret);
+        var key = Encoding.ASCII.GetBytes(DPAPIConfig.AuthSecret);
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = true, // Enable Issuer validation
-            ValidIssuer = authSettings.ValidIssuer, // Specify the expected Issuer value (e.g., "https://your-auth-server.com")
+            ValidIssuer = DPAPIConfig.AuthValidIssuer, // Specify the expected Issuer value (e.g., "https://your-auth-server.com")
             ValidateAudience = true, // Enable Audience validation
-            ValidAudience = authSettings.ValidAudience, // Specify the expected Audience value (e.g., "https://your-api.com")
-            //  ValidateIssuer = false,
-            // ValidateAudience = false
+            ValidAudience = DPAPIConfig.AuthValidAudience, // Specify the expected Audience value (e.g., "https://your-api.com")
             ValidateLifetime = true, // Enable token expiry validation
-
         };
     });
 
-
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IDebtorPortalAPIService, DebtorPortalAPIService>();
-builder.Services.AddSingleton<IDataManager , DataManager>();
+builder.Services.AddSingleton<IDataManager, DataManager>();
+builder.Services.AddSingleton<ITools, PdfTools>();
+builder.Services.AddSingleton<IConverter, BasicConverter>();
 
 var app = builder.Build();
 

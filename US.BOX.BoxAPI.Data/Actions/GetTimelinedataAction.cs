@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+//using System.Data.SqlClient;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using US.BOX.BoxAPI.Data.Models;
 using US.BOX.BoxAPI.Data.Utils;
+using US.BOX.DataAccess.DBFramework;
 
 namespace US.BOX.BoxAPI.Data.Actions
 {
@@ -15,11 +16,12 @@ namespace US.BOX.BoxAPI.Data.Actions
         public override async Task<List<Timeline>> ExecuteAsync(string connectionString, CancellationToken cancellationToken = default)
         {
             List<Timeline> list = new List<Timeline>();
-            string storedProcedure = "boxapi.GetTimelineData";
+            string storedProcedure = "dpapi.GetTimelineData";
             try
             {
                 using var command = await CreateCommandAsync(storedProcedure, CommandType.StoredProcedure, connectionString);
-                command.Parameters.Add(new SqlParameter("@CaseNumber", SqlDbType.Int)).Value = caseNumber;
+                //command.Parameters.Add(new SqlParameter("@CaseNumber", SqlDbType.Int)).Value = caseNumber;
+                command.Parameters.Add(DataAcessUtils.CreateParam("@CaseNumber", DbType.Int32, caseNumber));
 
                 using var dataReader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await dataReader.ReadAsync(cancellationToken))

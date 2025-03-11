@@ -27,13 +27,24 @@ namespace US.BOX.DebtorPortalAPI.Controllers
         public async Task<IActionResult> Authenticate(CancellationToken cancellationToken)
         {
                 Request.EnableBuffering();
+            //using var reader = new StreamReader(Request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
 
-                var username = Request.Form["username"];
-                var password = Request.Form["password"];
-                var company = Request.Form["company"];
+            //var body = await reader.ReadToEndAsync();
+            //// Reset the request body stream position
+            //Request.Body.Position = 0;
 
-                ArgumentNullException.ThrowIfNull(password);
-                ArgumentNullException.ThrowIfNull(password);
+            //// Parse the form data
+            //var formData = System.Web.HttpUtility.ParseQueryString(body);
+            //var username = formData["username"];
+            //var password = formData["password"];
+            //var company = formData["company"];
+
+            //ArgumentNullException.ThrowIfNull(username);
+            var username = Request.Form["username"];
+            var password = Request.Form["password"];
+            var company = Request.Form["company"];
+            ArgumentNullException.ThrowIfNull(username);
+            ArgumentNullException.ThrowIfNull(password);
 
                 var response = await _authService.Authenticate(username , password  , company , cancellationToken);
 

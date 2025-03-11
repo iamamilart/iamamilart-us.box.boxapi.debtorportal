@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using US.BOX.BoxAPI.Core.Interfaces;
@@ -28,12 +28,20 @@ namespace US.BOX.DebtorPortalAPI.Controllers.v2
         [Route("timeline_v2")]
         [HttpGet]
         [ProducesResponseType(typeof(List<Timeline>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetTimeline()
         {
-            var caseNumber = User.GetCaseNumber();
-            var result = await _apiService.GetTimelinedata(caseNumber);
-            return Ok(result);
+            try
+            {
+                var caseNumber = User.GetCaseNumber();
+                var result = await _apiService.GetTimelinedata(caseNumber);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting timeline data for case {CaseNumber}", User.GetCaseNumber());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
-
     }
 }

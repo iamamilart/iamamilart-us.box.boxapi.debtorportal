@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using US.BOX.BoxAPI.Core.Interfaces;
@@ -49,13 +49,21 @@ namespace US.BOX.DebtorPortalAPI.Controllers
         [Route("cases")]
         [HttpGet]
         [ProducesResponseType(typeof(PortalCase), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Cases(CancellationToken cancellationToken)
         {
-            var caseNumber = User.GetCaseNumber();
-            var result = await _apiService.GetPortalCase(caseNumber, cancellationToken);
-            return Ok(result);
+            try
+            {
+                var caseNumber = User.GetCaseNumber();
+                var result = await _apiService.GetPortalCase(caseNumber, cancellationToken);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting case details for user");
+                return StatusCode(500);
+            }
         }
-
 
         /// <summary>
         /// Fetch the debtor timeline data
@@ -77,16 +85,21 @@ namespace US.BOX.DebtorPortalAPI.Controllers
         [Route("timeline")]
         [HttpGet]
         [ProducesResponseType(typeof(List<Timeline>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [MapToApiVersion("1.0")]
         public async Task<IActionResult> GetTimeline()
         {
-            var caseNumber = User.GetCaseNumber();
-            var result = await _apiService.GetTimelinedata(caseNumber);
-            return Ok(result);
+            try
+            {
+                var caseNumber = User.GetCaseNumber();
+                var result = await _apiService.GetTimelinedata(caseNumber);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting timeline data for user");
+                return StatusCode(500);
+            }
         }
-
-
-
-
     }
 }
